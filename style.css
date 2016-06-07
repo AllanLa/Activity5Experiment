@@ -3,6 +3,26 @@
    License: none (public domain)
 */
 
+<style>
+	.centerIt{
+		width:300px;
+		height:200px;
+		position:absolute;
+		left:50%;
+		top:50%;
+		margin:-100px 0 0 -150px;
+}
+
+		.wrapper {
+		    text-align: center;
+		}
+
+		.button {
+		    position: absolute;
+		    top: 50%;
+		}
+ </style>
+
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,

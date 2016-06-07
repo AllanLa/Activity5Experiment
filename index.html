@@ -4,26 +4,38 @@
 <head>
 	<meta  charset="UTF-8>">
 	<title>D3 Activity 5</title>	
-	<link rel="stylesheet" href="base.css">
 	<link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>		
-	<div class="container" >
-		<pre>
-								In this experiment,
-							   you are asked to judge 
-		what is the percent of a smaller value to a larger value in several charts.
+	<div  >
+		<pre class = "centerIt">
+											In this experiment,
+								  		    you are asked to judge 
+		               			     what is the percent of a smaller value to a larger value in several charts.
 
-		       We won't record any other imformation from you expect your answers.
-		       				Click the "agree" button to begin.
+		                   			      We won't record any other imformation from you expect your answers.
+		       				 			       Click the "agree" button to begin.
 
-		       							Thank you!
+		       									  Thank you!
 		</pre>
 
 	</div>
+
+	<div class = "wrapper">
+		<button onclick="clearBrowser()">Disagree
+			</button>
+
+		<button onclick="myFunction()">Agree
+			</button>
+	</div>
+
+	<div id = chart>
+	</div>
 	
 	<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<script src= "switchScript.js"></script>
 	
 	
 </body>
