@@ -173,4 +173,12 @@ function generateText(){
 		+ "<br/>" + "Please input your answer below." + "<br/>"	+
 		"e.g. If you think the smaller one is exactly a half of the bigger one" +
 		"<br/>" + "please enter 50.");
+
+	
+	
+	d3.selectAll("form").style("visibility", "visible");
+}
+
+function nextChart(){
+	console.log("i was clicked")
 }

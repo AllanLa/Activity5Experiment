@@ -21,6 +21,11 @@
 		    position: absolute;
 		    top: 50%;
 		}
+
+		.answer{
+			text-align: center;
+			visibility: hidden;
+		}
  </style>
 
 html, body, div, span, applet, object, iframe,
