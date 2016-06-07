@@ -1,3 +1,5 @@
+var userValue;
+
 
 function clearBrowser() {
 
@@ -177,8 +179,18 @@ function generateText(){
 	
 	
 	d3.selectAll("form").style("visibility", "visible");
+	d3.select("form").on("submit", function() {
+	d3.event.preventDefault();
+  	return false;
+	});	
 }
 
 function nextChart(){
-	console.log("i was clicked")
+	userValue = parseInt(d3.select("input").property("value"));
+
+	if ( typeof userValue != 'number' || isNaN(userValue)){
+		alert("Please Enter a Number");
+		return false;
+	}
+	console.log(userValue);
 }
