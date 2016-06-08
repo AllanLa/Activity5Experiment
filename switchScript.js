@@ -1,5 +1,8 @@
-var userValue;
-
+var userValue; //variable to store user answer
+var actualAnswers = []; //keep track of actual answers, index corresponding to question
+var currentAnswers = [];//keep track of user answers, index corresponding to question
+var currentQuestion = 0; //count to keep track of number of questions
+var margin = { top: 30, right: 30, bottom: 40, left: 50 }
 
 function clearBrowser() {
 
@@ -14,8 +17,68 @@ function myFunction() {
 	d3.selectAll(".centerIt").remove();
 	d3.selectAll(".wrapper").remove();
 	generateGraph();
+	generateDots();
 	generateText();
 	}	
+
+function generateDots(){
+
+	//Only for rectangles, together selects all the Rectangles and puts it into
+	//a nested array like [Array[8]], so gotta extract the children
+	var together = d3.selectAll("rect");;
+	var arrayOfIndividuals = together[0];
+
+	//Picked two random parts of the rectangle
+	ranNum1 = Math.floor(Math.random() * arrayOfIndividuals.length);
+	ranNum2 = Math.floor(Math.random() * arrayOfIndividuals.length);
+
+	while ( ranNum1 == ranNum2) {
+		ranNum1 = Math.floor(Math.random() * arrayOfIndividuals.length);
+	}
+
+	rectangle1 = arrayOfIndividuals[ranNum1];
+	rectangle2 = arrayOfIndividuals[ranNum2];
+
+	//after selecting rectangles will now add circles to the rectangles
+	width1 = d3.select(rectangle1).attr("width");
+	height1 = d3.select(rectangle1).attr("height");
+	x1 = d3.select(rectangle1).attr("x");
+	y1 = d3.select(rectangle1).attr("y");
+
+	width2 = d3.select(rectangle2).attr("width");
+	height2 = d3.select(rectangle2).attr("height");
+	x2 = d3.select(rectangle2).attr("x");
+	y2 = d3.select(rectangle2).attr("y");
+
+	area1 = width1 * height1;
+	area2 = width2 * height2;
+
+	d3.select("svg")
+	.append("circle")
+    .style("stroke", "gray")
+    .style("fill", "black")
+    .attr("r", 5)
+    .attr('transform', 'translate(' + margin.left + ', ' + margin.top +')')
+    .attr("cx", parseInt(x1) + parseInt(30))
+    .attr("cy", parseInt(y1) - parseInt(10));
+
+	d3.select("svg")
+	.append("circle")
+    .style("stroke", "gray")
+    .style("fill", "black")
+    .attr("r", 5)
+    .attr('transform', 'translate(' + margin.left + ', ' + margin.top +')')
+    .attr("cx", parseInt(x2) + parseInt(30))
+    .attr("cy", parseInt(y2) - parseInt(10));
+
+    if(area1 < area2){
+    	actualAnswers[currentQuestion] = (area1 / area2) * 100;
+    }
+    else{
+    	actualAnswers[currentQuestion] = (area2 / area1) * 100;
+    }
+
+}
 
 function generateGraph(){
 	//var barData = [20, 30, 45, 90, 0, 15, 20, 1, 5, 10, 50, 80, 90, 80, 80,
@@ -29,10 +92,9 @@ function generateGraph(){
 
 	var barData = [];
 	for (var i=0, t=8; i<t; i++) {
-    	barData.push(Math.round(Math.random() * 40))
+    	barData.push(Math.round(Math.random() * 40) + 3)
 	}
 
-	var margin = { top: 30, right: 30, bottom: 40, left: 50 }
 
 	var height = 400 - margin.top - margin.bottom,
 		width = 600 - margin.left - margin.right,
@@ -93,7 +155,9 @@ function generateGraph(){
 			.style('fill', 'none')  //so over here would create a function
 			.style("stroke", "black")
 			.attr('width', xScale.rangeBand())//passing in colors(i) for horizontal change;
-			.attr('height', 0)
+			.attr('height', function(d){
+				return d;
+			})
 			.attr('x', function(d, i){
 				return xScale(i);
 			})
@@ -192,5 +256,12 @@ function nextChart(){
 		alert("Please Enter a Number");
 		return false;
 	}
-	console.log(userValue);
+
+	currentAnswers[currentQuestion] = userValue;
+	currentQuestion += 1;
+	d3.select("svg").remove(); //Will get rid of the current chart
+	console.log("User answers: " + currentAnswers.toString()); //Used for debugging
+	console.log("Actual answers: " + actualAnswers.toString());
+	generateGraph(); //Generate a different graph
+	generateDots(); 
 }
