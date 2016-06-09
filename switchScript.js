@@ -4,24 +4,32 @@ var currentAnswers = [];//keep track of user answers, index corresponding to que
 var currentQuestion = 0; //count to keep track of number of questions
 var margin = { top: 30, right: 30, bottom: 40, left: 50 }
 
-function clearBrowser() {
-
-	console.log("disagree button was clicked");
+function end() {
 	window.close()
 	}
 
 
-function myFunction() {
-
-	console.log("agree button was clicked");
+function start() {
 	d3.selectAll(".centerIt").remove();
 	d3.selectAll(".wrapper").remove();
 	generateGraph();
-	generateDots();
 	generateText();
-	}	
+}	
 
-function generateDots(){
+function generateGraph(){
+	//generates number 0 or 1
+	randomNumber = Math.floor(Math.random() * 2);
+	
+	if (randomNumber == 1){
+		generateBarGraph();
+	}
+
+	else{
+		generatePieChart();
+	}
+}
+
+function generateBarDots(){
 
 	//Only for rectangles, together selects all the Rectangles and puts it into
 	//a nested array like [Array[8]], so gotta extract the children
@@ -72,15 +80,111 @@ function generateDots(){
     .attr("cy", parseInt(y2) - parseInt(10));
 
     if(area1 < area2){
-    	actualAnswers[currentQuestion] = (area1 / area2) * 100;
+    	actualAnswers[currentQuestion] = ((area1 / area2) * 100).toFixed(2);
     }
     else{
-    	actualAnswers[currentQuestion] = (area2 / area1) * 100;
+    	actualAnswers[currentQuestion] = ((area2 / area1) * 100).toFixed(2);
     }
 
 }
 
-function generateGraph(){
+function generatePieChart(){
+	//Referenced from https://gist.github.com/enjalot/1203641
+	var width = 300,                        //width
+    height = 300,                            //height
+    r = 150;                           //radius
+
+	var data = [];
+	for (var i=0, t=8; i<t; i++) {
+    	data.push({"value" : Math.round(Math.random() * 40) + 3});
+	}            
+
+
+    
+    var vis = d3.select("#chart")
+        .append("svg")              //create the SVG element inside the <body>
+		.style('background', 'white')
+	    .attr('width', width + margin.left + margin.right)
+		.attr('height', height + margin.top + margin.bottom)
+		.style('background', '#C9D7D6')
+		.append('g')
+		//moves graphic over x px using margin.left and y using margin.top
+		.attr('transform', 'translate(' + margin.left + ', ' + margin.top +')')        
+        .data([data])                   //associate our data with the document
+            .attr("width", width)           //set the width and height of our visualization (these will be attributes of the <svg> tag
+            .attr("height", height)
+        .append("g")                //make a group to hold our pie chart
+            .attr("transform", "translate(" + r + "," + r + ")")    //move the center of the pie chart from 0, 0 to radius, radius
+
+    var arc = d3.svg.arc()              //this will create <path> elements for us using arc data
+        .outerRadius(r);
+
+    var pie = d3.layout.pie()           //this will create arc data for us given a list of values
+        .value(function(d) { return d.value; });    //we must tell it out to access the value of each element in our data array
+
+    var arcs = vis.selectAll("g.slice")     //this selects all <g> elements with class slice (there aren't any yet)
+        .data(pie)                          //associate the generated pie data (an array of arcs, each having startAngle, endAngle and value properties) 
+        .enter()                            //this will create <g> elements for every "extra" data element that should be associated with a selection. The result is creating a <g> for every object in the data array
+            .append("svg:g")                //create a group to hold each slice (we will have a <path> and a <text> element associated with each slice)
+                .attr("class", "slice");    //allow us to style things in the slices (like text)
+        arcs.append("svg:path")
+                .attr("fill", "none" ) //set the color for each slice to be chosen from the color function defined above
+                .attr("stroke", "black")
+                .attr("d", arc);        //this creates the actual SVG path using the associated data (pie) with the arc drawing function
+    
+
+
+	//only for pie charts to generate dots
+	var arrayOfSlices = d3.selectAll("g.slice")[0];
+
+	//Picked two random parts of the pieChart
+	ranNum1 = Math.floor(Math.random() * arrayOfSlices.length);
+	ranNum2 = Math.floor(Math.random() * arrayOfSlices.length);	
+
+	while ( ranNum1 == ranNum2) {
+		ranNum1 = Math.floor(Math.random() * arrayOfSlices.length);
+	}
+
+	slice1 = arrayOfSlices[ranNum1];
+	slice2 = arrayOfSlices[ranNum2];
+
+	d3.select(slice1).append("circle")
+		.style("stroke", "gray")
+		.style("fill", "black")
+		.attr("r", 5)                                   //add a label to each slice
+    	.attr("transform", function(d) {                    //set the label's origin to the center of the arc
+    	//we have to make sure to set these before calling arc.centroid
+    	d.innerRadius = 0;
+    	d.outerRadius = r;
+    	return "translate(" + arc.centroid(d) + ")";        //this gives us a pair of coordinates like [50, 50]
+		})
+
+	d3.select(slice2).append("circle")
+		.style("stroke", "gray")
+		.style("fill", "black")
+		.attr("r", 5)                                   //add a label to each slice
+        .attr("transform", function(d) {                    //set the label's origin to the center of the arc
+        //we have to make sure to set these before calling arc.centroid
+        d.innerRadius = 0;
+        d.outerRadius = r;
+        return "translate(" + arc.centroid(d) + ")";        //this gives us a pair of coordinates like [50, 50]
+    })
+
+	area1= d3.select(slice1).data()[0].value
+	area2= d3.select(slice2).data()[0].value                
+
+    d3.select("#chart").attr("align","center");
+
+
+    if(area1 < area2){
+    	actualAnswers[currentQuestion] = ((area1 / area2) * 100).toFixed(2);
+    }
+    else{
+    	actualAnswers[currentQuestion] = ((area2 / area1) * 100).toFixed(2);
+    }
+}
+
+function generateBarGraph(){
 	//var barData = [20, 30, 45, 90, 0, 15, 20, 1, 5, 10, 50, 80, 90, 80, 80,
 	//				3];
 
@@ -230,7 +334,7 @@ function generateGraph(){
 
 
 	d3.select("#chart").attr("align","center"); 			
-
+	generateBarDots();
 }
 
 function generateText(){
@@ -257,11 +361,15 @@ function nextChart(){
 		return false;
 	}
 
+	document.getElementById("myForm").reset();
+
 	currentAnswers[currentQuestion] = userValue;
 	currentQuestion += 1;
 	d3.select("svg").remove(); //Will get rid of the current chart
 	console.log("User answers: " + currentAnswers.toString()); //Used for debugging
 	console.log("Actual answers: " + actualAnswers.toString());
 	generateGraph(); //Generate a different graph
-	generateDots(); 
+
 }
+
+

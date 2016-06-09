@@ -12,7 +12,7 @@
 	<div  >
 		<pre class = "centerIt">
 											In this experiment,
-								  		    you are asked to judge 
+								  		  you are asked to judge 
 		               			     what is the percent of a smaller value to a larger value in several charts.
 
 		                   			      We won't record any other imformation from you expect your answers.
@@ -24,13 +24,13 @@
 	</div>
 
 	<div class = "wrapper">
-		<button onclick="clearBrowser()">Disagree
+		<button onclick="end()">Disagree
 			</button>
 
-		<button onclick="myFunction()">Agree
+		<button onclick="start()">Agree
 			</button>
 	</div>
-	
+
 	<div class="container" >
 
 		<div id = chart>
@@ -38,7 +38,7 @@
 
 	</div>
 
-	<form class = "answer" name = "userValue">
+	<form class = "answer" name = "userValue" id = "myForm">
   		  Answer: <input type="number">
 	  	  <button onclick="nextChart()">Next</button>
 	</form>
