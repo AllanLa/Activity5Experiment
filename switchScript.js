@@ -1,36 +1,166 @@
 var userValue; //variable to store user answer
 var actualAnswers = []; //keep track of actual answers, index corresponding to question
 var currentAnswers = [];//keep track of user answers, index corresponding to question
-var currentQuestion = 0; //count to keep track of number of questions
+var currentQuestion = 1; //count to keep track of number of questions
 var margin = { top: 30, right: 30, bottom: 40, left: 50 }
+TOTALQUESTIONS = 6;
 
 function end() {
+	//closes the Window
 	window.close()
 	}
 
 
 function start() {
+	//Begins the survey by clearing everything then adding what is needed
 	d3.selectAll(".centerIt").remove();
 	d3.selectAll(".wrapper").remove();
-	generateGraph();
+	generateStacked();
 	generateText();
 }	
 
 function generateGraph(){
-	//generates number 0 or 1
-	randomNumber = Math.floor(Math.random() * 2);
+	//generates number 0 and 3
+	randomNumber = Math.floor(Math.random() * 3);
 	
 	if (randomNumber == 1){
 		generateBarGraph();
 	}
 
-	else{
+	else if (randomNumber == 2){
 		generatePieChart();
+	}
+
+	else {
+		generateStacked();
 	}
 }
 
-function generateBarDots(){
+function generateStacked(){
+	//referenced from https://gist.github.com/anotherjavadude/2940908
+    var w = 75,
+    h = 500
+    // create canvas
+    var svg = d3.select("#chart")
+    .append("svg")
+	.style('background', '#C9D7D6')    
+    .attr("width", w)
+    .attr("height", h )
+    .append("svg:g")
+    .attr("transform", "translate(25,470)");
 
+    x = d3.scale.ordinal().rangeRoundBands([0, w-50])
+    y = d3.scale.linear().range([0, h-50])            
+
+
+// 4 columns: ID,c1,c2,c3
+    var matrix = []
+
+	var data = [1];
+	for (var i=0, t=5; i<t; i++) {
+    	data.push(Math.round(Math.random() * 100) + 20);
+	}            
+
+	matrix[0] = data;
+
+    var remapped =["c1","c2","c3", "c4", "c5"].map(function(dat,i){
+        return matrix.map(function(d,ii){
+            return {x: ii, y: d[i+1] };
+        })
+    });
+
+    var stacked = d3.layout.stack()(remapped)
+    x.domain(stacked[0].map(function(d) { return d.x; }));
+    y.domain([0, d3.max(stacked[stacked.length - 1], function(d) { return d.y0 + d.y; })]);
+ 
+    // Add a group for each column.
+    var valgroup = svg.selectAll("g.valgroup")
+    .data(stacked)
+    .enter().append("svg:g")
+    .attr("class", "valgroup")
+    .style("fill", "none")
+    .style("stroke", "black");
+
+
+    // Add a rect for each date.            
+    var rect = valgroup.selectAll("rect")
+    .data(function(d){return d;})
+    .enter().append("svg:rect")
+    .attr("x", function(d) { return x(d.x); })
+    .attr("y", function(d) { return -y(d.y0) - y(d.y); })
+    .attr("height", function(d) { return y(d.y); })
+    .attr("width", x.rangeBand())
+    .attr("align", "center");
+
+
+    d3.select("#chart").attr("align","center");   
+
+    generateStackedDots();
+}			
+
+function generateStackedDots(){
+	//Only for stacked bargraphs
+	var together = d3.selectAll("rect");;
+	var arrayOfIndividuals = together[0];
+
+	//Picked two random parts of the rectangle
+	ranNum1 = Math.floor(Math.random() * arrayOfIndividuals.length);
+	ranNum2 = Math.floor(Math.random() * arrayOfIndividuals.length);
+
+	while ( ranNum1 == ranNum2) {
+		ranNum1 = Math.floor(Math.random() * arrayOfIndividuals.length);
+	}
+
+	rectangle1 = arrayOfIndividuals[ranNum1];
+	rectangle2 = arrayOfIndividuals[ranNum2];
+
+	//after selecting rectangles will now add circles to the rectangles
+	width1 = d3.select(rectangle1).attr("width");
+	height1 = d3.select(rectangle1).attr("height");
+	x1 = d3.select(rectangle1).attr("x");
+	y1 = d3.select(rectangle1).attr("y") ;
+
+	width2 = d3.select(rectangle2).attr("width");
+	height2 = d3.select(rectangle2).attr("height");
+	x2 = d3.select(rectangle2).attr("x");
+	y2 = d3.select(rectangle2).attr("y");
+
+
+	area1 = width1 * height1;
+	area2 = width2 * height2;
+
+	d3.select("svg")
+	.append("circle")
+    .style("stroke", "gray")
+    .style("fill", "black")
+    .attr("r", 5)
+    .attr("transform", "translate(25,470)")
+    .attr("cx", parseInt(x1) + parseInt(12))
+    .attr("cy", parseInt(y1) + parseInt(20))
+	.attr("align", "center");
+
+
+	d3.select("svg")
+	.append("circle")
+    .style("stroke", "gray")
+    .style("fill", "black")
+    .attr("r", 5)
+    .attr("transform", "translate(25,470)")    
+    .attr("cx", parseInt(x2) + parseInt(12))
+    .attr("cy", parseInt(y2) + parseInt(20))
+    .attr("align", "center");
+
+
+    if(area1 < area2){
+    	actualAnswers[currentQuestion] = ((area1 / area2) * 100).toFixed(2);
+    }
+    else{
+    	actualAnswers[currentQuestion] = ((area2 / area1) * 100).toFixed(2);
+    }
+
+}			
+
+function generateBarDots(){
 	//Only for rectangles, together selects all the Rectangles and puts it into
 	//a nested array like [Array[8]], so gotta extract the children
 	var together = d3.selectAll("rect");;
@@ -47,6 +177,8 @@ function generateBarDots(){
 	rectangle1 = arrayOfIndividuals[ranNum1];
 	rectangle2 = arrayOfIndividuals[ranNum2];
 
+	console.log(rectangle1);
+	console.log(rectangle2);
 	//after selecting rectangles will now add circles to the rectangles
 	width1 = d3.select(rectangle1).attr("width");
 	height1 = d3.select(rectangle1).attr("height");
@@ -95,7 +227,7 @@ function generatePieChart(){
     r = 150;                           //radius
 
 	var data = [];
-	for (var i=0, t=8; i<t; i++) {
+	for (var i=0, t=5; i<t; i++) {
     	data.push({"value" : Math.round(Math.random() * 40) + 3});
 	}            
 
@@ -195,7 +327,7 @@ function generateBarGraph(){
 	*/
 
 	var barData = [];
-	for (var i=0, t=8; i<t; i++) {
+	for (var i=0, t=5; i<t; i++) {
     	barData.push(Math.round(Math.random() * 40) + 3)
 	}
 
@@ -341,8 +473,23 @@ function generateText(){
 	d3.select("div").classed("wrapper", true).html("Two values are marked with dots." 
 		+ "<br/>" + "What do you think the percent of the smaller value is to the larger value?"
 		+ "<br/>" + "Please input your answer below." + "<br/>"	+
-		"e.g. If you think the smaller one is exactly a half of the bigger one" +
-		"<br/>" + "please enter 50.");
+		"e.g. If you think the smaller one is exactly a half of the bigger one" 
+		+ "<br/>" + "please enter 50."
+		+" <br/>" + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" 
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" 
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" 
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" 
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" 
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" 
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+		+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" 
+		+ currentQuestion + "/" + TOTALQUESTIONS);
 
 	
 	
@@ -354,6 +501,7 @@ function generateText(){
 }
 
 function nextChart(){
+	//Chooses the next chart after recording UserAnswer / Data
 	userValue = parseInt(d3.select("input").property("value"));
 
 	if ( typeof userValue != 'number' || isNaN(userValue)){
@@ -368,8 +516,27 @@ function nextChart(){
 	d3.select("svg").remove(); //Will get rid of the current chart
 	console.log("User answers: " + currentAnswers.toString()); //Used for debugging
 	console.log("Actual answers: " + actualAnswers.toString());
-	generateGraph(); //Generate a different graph
 
+	if (currentQuestion > TOTALQUESTIONS){
+		endSurvey();
+	}
+
+	generateText();
+	generateGraph(); //Generate a different graph
+}
+
+function endSurvey(){
+	/*
+	Removes everything from the document
+	*/
+	d3.select(".wrapper")[0][0].remove();
+	d3.select("form")[0][0].remove()
+	d3.select(".container").remove();
+
+	d3.select("div").classed("wrapper", true).html("Thanks for your participation!");	
+	
+	//for some reason, if I do not have an error, the webpage just freezes
+	document.clea();
 }
 
 
