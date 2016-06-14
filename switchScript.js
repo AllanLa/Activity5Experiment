@@ -1,9 +1,13 @@
-var userValue; //variable to store user answer
-var actualAnswers = []; //keep track of actual answers, index corresponding to question
-var currentAnswers = [];//keep track of user answers, index corresponding to question
+var currentUserAnswer; //variable to store user answer
+var currentCorrectAnswer; //variable to store the current correct Answer
+var users = [];  //variable to store the user and their progress at the end of the experiment
+var answers = []; //Used to keep track of each question's correct Answer, userAnswer, and error
 var currentQuestion = 1; //count to keep track of number of questions
-var margin = { top: 30, right: 30, bottom: 40, left: 50 }
-TOTALQUESTIONS = 6;
+var margin = { top: 30, right: 30, bottom: 40, left: 50 };
+var currentChart = "none";
+var TOTALQUESTIONS = 6;
+var userID;
+
 
 function end() {
 	//closes the Window
@@ -15,7 +19,8 @@ function start() {
 	//Begins the survey by clearing everything then adding what is needed
 	d3.selectAll(".centerIt").remove();
 	d3.selectAll(".wrapper").remove();
-	generateStacked();
+	userID = (new Date()).toString(36);
+	generateGraph();
 	generateText();
 }	
 
@@ -24,14 +29,17 @@ function generateGraph(){
 	randomNumber = Math.floor(Math.random() * 3);
 	
 	if (randomNumber == 1){
+		currentChart = "BarChart";
 		generateBarGraph();
 	}
 
 	else if (randomNumber == 2){
+		currentChart = "PieChart";
 		generatePieChart();
 	}
 
 	else {
+		currentChart = "StackedChart";
 		generateStacked();
 	}
 }
@@ -92,7 +100,6 @@ function generateStacked(){
     .attr("width", x.rangeBand())
     .attr("align", "center");
 
-
     d3.select("#chart").attr("align","center");   
 
     generateStackedDots();
@@ -152,10 +159,10 @@ function generateStackedDots(){
 
 
     if(area1 < area2){
-    	actualAnswers[currentQuestion] = ((area1 / area2) * 100).toFixed(2);
+    	currentCorrectAnswer = ((area1 / area2) * 100).toFixed(2);
     }
     else{
-    	actualAnswers[currentQuestion] = ((area2 / area1) * 100).toFixed(2);
+    	currentCorrectAnswer = ((area2 / area1) * 100).toFixed(2);
     }
 
 }			
@@ -177,8 +184,7 @@ function generateBarDots(){
 	rectangle1 = arrayOfIndividuals[ranNum1];
 	rectangle2 = arrayOfIndividuals[ranNum2];
 
-	console.log(rectangle1);
-	console.log(rectangle2);
+
 	//after selecting rectangles will now add circles to the rectangles
 	width1 = d3.select(rectangle1).attr("width");
 	height1 = d3.select(rectangle1).attr("height");
@@ -212,10 +218,10 @@ function generateBarDots(){
     .attr("cy", parseInt(y2) - parseInt(10));
 
     if(area1 < area2){
-    	actualAnswers[currentQuestion] = ((area1 / area2) * 100).toFixed(2);
+    	currentCorrectAnswer = ((area1 / area2) * 100).toFixed(2);
     }
     else{
-    	actualAnswers[currentQuestion] = ((area2 / area1) * 100).toFixed(2);
+    	currentCorrectAnswer = ((area2 / area1) * 100).toFixed(2);
     }
 
 }
@@ -309,10 +315,10 @@ function generatePieChart(){
 
 
     if(area1 < area2){
-    	actualAnswers[currentQuestion] = ((area1 / area2) * 100).toFixed(2);
+    	currentCorrectAnswer = ((area1 / area2) * 100).toFixed(2);
     }
     else{
-    	actualAnswers[currentQuestion] = ((area2 / area1) * 100).toFixed(2);
+    	currentCorrectAnswer = ((area2 / area1) * 100).toFixed(2);
     }
 }
 
@@ -465,7 +471,8 @@ function generateBarGraph(){
 			.style({fill: 'none', stroke: "#000"})
 
 
-	d3.select("#chart").attr("align","center"); 			
+	d3.select("#chart").attr("align","center"); 	
+
 	generateBarDots();
 }
 
@@ -501,21 +508,19 @@ function generateText(){
 }
 
 function nextChart(){
-	//Chooses the next chart after recording UserAnswer / Data
-	userValue = parseInt(d3.select("input").property("value"));
+	//Chooses the next chart after recording currentUserAnswer / Data
+	currentUserAnswer = parseInt(d3.select("input").property("value"));
 
-	if ( typeof userValue != 'number' || isNaN(userValue)){
+	if ( typeof currentUserAnswer != 'number' || isNaN(currentUserAnswer)){
 		alert("Please Enter a Number");
 		return false;
 	}
 
 	document.getElementById("myForm").reset();
+	formatResults();
 
-	currentAnswers[currentQuestion] = userValue;
 	currentQuestion += 1;
 	d3.select("svg").remove(); //Will get rid of the current chart
-	console.log("User answers: " + currentAnswers.toString()); //Used for debugging
-	console.log("Actual answers: " + actualAnswers.toString());
 
 	if (currentQuestion > TOTALQUESTIONS){
 		endSurvey();
@@ -525,6 +530,25 @@ function nextChart(){
 	generateGraph(); //Generate a different graph
 }
 
+function formatResults(){
+	//Error - log2(|judged% - true%| + 1/8)	
+	var e = Math.log2(Math.abs(currentUserAnswer - currentCorrectAnswer) 
+			+ (1.0/8.0));
+
+	console.log("Your answer is " + currentUserAnswer);
+	console.log("Current correct answer is " + currentCorrectAnswer);
+	console.log("Current chart is a " + currentChart);
+	console.log("Error is " + e);
+
+	/*object created to hold the current question chart type,
+	  currentUserAnswer, currentCorrectAnswer, and error*/
+	var object = { chart: currentChart, userAnswer: currentUserAnswer,
+		correctAnswer: currentCorrectAnswer, error: e};
+
+	answers.push(object);
+
+}
+
 function endSurvey(){
 	/*
 	Removes everything from the document
@@ -532,9 +556,9 @@ function endSurvey(){
 	d3.select(".wrapper")[0][0].remove();
 	d3.select("form")[0][0].remove()
 	d3.select(".container").remove();
-
 	d3.select("div").classed("wrapper", true).html("Thanks for your participation!");	
 	
+	users.push({user: userID, arrayOfAnswers: answers});	
 	//for some reason, if I do not have an error, the webpage just freezes
 	document.clea();
 }
