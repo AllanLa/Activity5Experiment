@@ -1,11 +1,12 @@
-var currentUserAnswer; //variable to store user answer
+var currentUserAnswer; //variable to store current user answer
 var currentCorrectAnswer; //variable to store the current correct Answer
-var users = [];  //variable to store the user and their progress at the end of the experiment
-var answers = []; //Used to keep track of each question's correct Answer, userAnswer, and error
+var users = [];  //variable to store the user id and the answers array at the end of the survey
+var answers = []; //Used to keep track of each question's correct Answer, userAnswer, and error, and chart type
 var currentQuestion = 1; //count to keep track of number of questions
 var margin = { top: 30, right: 30, bottom: 40, left: 50 };
-var currentChart = "none";
-var TOTALQUESTIONS = 6;
+var currentChart = "none"; //keeps track of the current chart
+var currentAdaptation = "none"; //keeps track of the current adaptation
+var TOTALQUESTIONS = 20;
 var userID;
 
 
@@ -184,7 +185,13 @@ function generateStackedDots(){
     	currentCorrectAnswer = ((area2 / area1) * 100).toFixed(2);
     }
 
-   generateAdjacentBars(value1, value2);
+	ranNum = Math.floor(Math.random() * 2);
+    if (ranNum == 0){
+    	currentAdaptation = "none";
+   	} else{
+   		currentAdaptation = "adjacentBars";
+    	generateAdjacentBars(value1, value2);
+    }
 }			
 
 
@@ -287,7 +294,13 @@ function generatePieChart(){
     	currentCorrectAnswer = ((value2 / value1) * 100).toFixed(2);
     }
 
-    generateAdjacentBars(value1, value2);
+    ranNum = Math.floor(Math.random() * 2);
+    if (ranNum == 0){
+    	currentAdaptation = "none";
+   	} else{
+   		currentAdaptation = "adjacentBars";
+    	generateAdjacentBars(value1, value2);
+    }
 }
 
 function generateBarGraph(){
@@ -366,7 +379,7 @@ function generateBarGraph(){
 			.style("stroke", "black")
 			.attr('width', xScale.rangeBand())//passing in colors(i) for horizontal change;
 			.attr('height', function(d){
-				return d;
+				return yScale(d);
 			})
 			.attr('x', function(d, i){
 				return xScale(i);
@@ -515,8 +528,105 @@ function generateBarDots(){
     	currentCorrectAnswer = ((area2 / area1) * 100).toFixed(2);
     }
 
-    generateAdjacentBars(value1, value2);
+    ranNum = Math.floor(Math.random() * 3);
 
+    if (ranNum == 0){
+    	currentAdaptation = "barLine";
+   		generateBarLine(ranNum1, ranNum2);
+   	} else if (ranNum == 1){
+   		currentAdaptation = "adjacentBars";
+    	generateAdjacentBars(value1, value2);
+    } else{
+    	currentAdaptation = "none";
+    }
+
+}
+
+function generateBarLine(ranNum1, ranNum2){
+	/*Line Morph adaptation */
+	var together = d3.selectAll("rect");;
+	var arrayOfIndividuals = together[0];	
+	rectangle1 = arrayOfIndividuals[ranNum1];
+	rectangle2 = arrayOfIndividuals[ranNum2];	
+
+	//after selecting rectangles will now add circles to the rectangles
+	width1 = d3.select(rectangle1).attr("width");
+	height1 = d3.select(rectangle1).attr("height");
+	x1 = d3.select(rectangle1).attr("x");
+	y1 = d3.select(rectangle1).attr("y");
+
+	width2 = d3.select(rectangle2).attr("width");
+	height2 = d3.select(rectangle2).attr("height");
+	x2 = d3.select(rectangle2).attr("x");
+	y2 = d3.select(rectangle2).attr("y");
+
+
+	var height = 400 - margin.top - margin.bottom;
+
+	area1 = width1 * height1;
+	area2 = width2 * height2;
+
+
+	if (area1 < area2){
+		console.log("here area1 < area2");
+
+		d3.select("svg").append("line")
+		.attr("x1", function() {
+
+			if (ranNum1 < ranNum2 || (parseInt(ranNum1) + parseInt(1) == ranNum2)){
+				return x1;
+			}
+			else{
+				return parseInt(x1) + parseInt(width1);
+			}
+		})
+		.attr("x2", function() {
+
+			if (ranNum1 < ranNum2 && (parseInt(ranNum1) + parseInt(1) == ranNum2)){
+				return parseInt(x2) + parseInt(width2);
+			}
+			else if (ranNum1 < ranNum2){
+				return parseInt(x2) + parseInt(width2);
+			}
+
+			else{
+				return x2;
+			}
+		})
+		.attr("y1", height - height1)
+		.attr("y2", height - height1)
+		.attr("stroke", "grey")
+		.attr("stroke-width", 3)
+		.attr("storke-dasharray", ("3 , 3"))
+		    .attr('transform', 'translate(' + margin.left + ', ' + margin.top +')');
+	}
+
+	//area1 > area2
+	else{
+		d3.select("svg").append("line")
+		.attr("x1", function() { 
+			if (ranNum1 < ranNum2){
+				return x1;
+			}
+			else{
+				return parseInt(x1) + parseInt(width1);
+			}
+		})
+		.attr("x2", function() { 
+			if (ranNum2 < ranNum1){
+				return x2;
+			}
+			else{
+				return parseInt(x2) + parseInt(width2);
+			}
+		})
+		.attr("y1", height - height2)
+		.attr("y2", height - height2)
+		.attr("stroke", "grey")
+		.attr("stroke-width", 3)
+		.attr("storke-dasharray", ("3 , 3"))
+		    .attr('transform', 'translate(' + margin.left + ', ' + margin.top +')');
+	}
 }
 
 function generateAdjacentBars(value1, value2){
@@ -661,7 +771,8 @@ function generateAdjacentBars(value1, value2){
 			.style({fill: 'none', stroke: "#000"})
 
 
-	d3.select("#chart2").attr("align","center");	
+	d3.select("#chart2").attr("align","center")
+		.attr("display", "inline");	
 }
 
 function generateText(){
@@ -727,12 +838,15 @@ function formatResults(){
 	console.log("Your answer is " + currentUserAnswer);
 	console.log("Current correct answer is " + currentCorrectAnswer);
 	console.log("Current chart is a " + currentChart);
+	console.log("Current adaptation is " + currentAdaptation);
 	console.log("Error is " + e);
+	console.log("");
 
 	/*object created to hold the current question chart type,
 	  currentUserAnswer, currentCorrectAnswer, and error*/
-	var object = { chart: currentChart, userAnswer: currentUserAnswer,
-		correctAnswer: currentCorrectAnswer, error: e};
+	var object = { chart: currentChart, adaptation: currentAdaptation, 
+				userAnswer: currentUserAnswer, correctAnswer: currentCorrectAnswer, 
+				error: e};
 
 	answers.push(object);
 
@@ -749,8 +863,9 @@ function endSurvey(){
 	
 	//pushes an object with the userID, and the arrayOfAnswers into the array of Users
 	users.push({user: userID, arrayOfAnswers: answers});	
+
 	//for some reason, if I do not have an error, the webpage just freezes
-	//document.clea();
+	document.clea();
 }
 
 
